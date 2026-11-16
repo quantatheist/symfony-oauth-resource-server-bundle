@@ -1,0 +1,24 @@
+{
+  "name": "quantatheist/symfony-oauth-resource-server-bundle",
+  "description": "Symfony-native OAuth resource server and public app bootstrap contracts",
+  "type": "symfony-bundle",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.4",
+    "symfony/framework-bundle": "^8.1",
+    "symfony/security-http": "^8.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^12.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Quantatheist\\OAuthResourceServer\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Quantatheist\\OAuthResourceServer\\Tests\\": "tests/"
+    }
+  }
+}
