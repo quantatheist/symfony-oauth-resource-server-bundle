@@ -17,6 +17,10 @@ See [security architecture](docs/architecture.md).
 
 Prefer Symfony's native Security access token handler and (Symfony 8.2) resource metadata functionality for RFC 9728. OIDC Discovery and token refresh are performed by the external Authorization Server, not this bundle.
 
+## Integration configuration
+
+See [Web, API and Flutter client configuration](docs/configuration-and-redirects.md) for Authentik values, exact callback/redirect URI registration, and existing application ENV compatibility. No new web OIDC env variables are introduced by this bundle.
+
 ## Development
 
 `composer install`, then `vendor/bin/phpunit`. Real IdP security acceptance tests are still required.
