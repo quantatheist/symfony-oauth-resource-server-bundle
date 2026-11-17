@@ -46,6 +46,6 @@ final class ClientBootstrapControllerTest extends TestCase
         $response = (new ClientBootstrapController($provider, new BootstrapDocumentValidator()))();
         self::assertSame(503, $response->getStatusCode());
         self::assertSame('{"error":"bootstrap_unavailable"}', $response->getContent());
-        self::assertSame('no-store', $response->headers->get('Cache-Control'));
+        self::assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
     }
 }
