@@ -1,28 +1,29 @@
 # Symfony OAuth Resource Server Bundle
 
-Provider-neutral Symfony API authentication and public application bootstrap contracts.
+Provider-neutral extensions around Symfony Security's **native OAuth2 resource-server support**, plus an optional application bootstrap for Flutter / Home Assistant.
 
-## Status
+## Status: integration preview, NOT production-certified
 
-**Experimental package; not production-ready.** An opt-in public application bootstrap endpoint is provided, but no token authenticator, RFC 9728 metadata endpoint, or refresh endpoint is registered by this package. Use Symfony 8.2 native functionality for RFC 9728, and Authentik for OIDC/token refresh.
+Available:
+- Opt-in `GET /.well-known/app-auth/v1` Symfony controller (not OIDC or RFC 9728 discovery).
+- Explicit public client document via `ConfiguredClientBootstrapProvider` or a host implementation of `ClientBootstrapProviderInterface`.
+- Strict bootstrap structural/HTTPS/allowlisted-key validation (unknown fields, including client secrets, rejected).
+- Optional `DualValidationAccessTokenHandler` requiring two trusted Symfony access-token validators to accept the exact token and identical subject. It **does not** implement cryptography, introspection, client binding, purpose or scope enforcement itself.
+- `ConsumerPolicyInterface` and `VerifiedAccessToken` contracts for future verified client policies.
 
-See [security architecture](docs/architecture.md).
+Not yet implemented: automatically configured native JWT + introspection validator services, multi-provider selection, verified client ID/azp/scope policies, complete route-level functional tests and a real Authentik E2E profile.
 
-## Contracts
+**Do not deploy as the sole API auth gate.** Continue using the working and audited application-specific security handlers until the above policies and production integration tests are complete.
 
-- `ClientBootstrapProviderInterface` delegates non-sensitive application and mobile-client metadata to the host app.
-- `BootstrapDocumentValidator` offers initial **structural** checks for the Nailpolishment-compatible `version: 1` format; it is not yet a complete URL/SSRF/host policy.
-- `VerifiedAccessToken` is a post-validation data carrier, not a JWT parser.
-- `ConsumerPolicyInterface` expresses extra per-API allowlist decisions after trusted token validation.
+## Documentation
 
-Prefer Symfony's native Security access token handler and (Symfony 8.2) resource metadata functionality for RFC 9728. OIDC Discovery and token refresh are performed by the external Authorization Server, not this bundle.
+- [Opt-in discovery endpoint](docs/app-bootstrap.md)
+- [Web/Flutter API environment configuration and redirects](docs/configuration-and-redirects.md)
+- [Dual JWT + introspection verification adapter](docs/dual-validation.md)
+- [Security architecture](docs/architecture.md)
 
-## Integration configuration
-
-See [Web, API and Flutter client configuration](docs/configuration-and-redirects.md) for Authentik values, exact callback/redirect URI registration, and existing application ENV compatibility. No new web OIDC env variables are introduced by this bundle.
-
-[Enable app bootstrap: /.well-known/app-auth/v1](docs/app-bootstrap.md)
+Symfony 8.2 implements RFC 9728 protected-resource metadata natively. Authentik owns its OIDC metadata, authorization and token endpoints. Mobile apps exchange codes with PKCE and refresh tokens directly at Authentik. This bundle does not issue or refresh tokens.
 
 ## Development
 
-`composer install`, then `vendor/bin/phpunit`. Real IdP security acceptance tests are still required.
+`composer install` then `vendor/bin/phpunit`. GitHub Actions runs syntax and unit tests on PRs. Release and host-application integration tests remain required.
