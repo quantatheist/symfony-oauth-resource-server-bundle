@@ -1,0 +1,12 @@
+services:
+    Quantatheist\OAuthResourceServer\Bootstrap\BootstrapDocumentValidator: ~
+
+    Quantatheist\OAuthResourceServer\Controller\ClientBootstrapController:
+        public: true
+        arguments:
+            $provider: '@Quantatheist\OAuthResourceServer\Bootstrap\ClientBootstrapProviderInterface'
+            $validator: '@Quantatheist\OAuthResourceServer\Bootstrap\BootstrapDocumentValidator'
+
+# The host application MUST alias ClientBootstrapProviderInterface to its own
+# public-client configuration service before importing config/routes.yaml.
+# No bundle route is imported automatically.
