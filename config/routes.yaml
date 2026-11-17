@@ -1,0 +1,7 @@
+# Explicitly import this file to enable the public application bootstrap.
+# This is NOT OpenID Connect discovery (owned by Authentik) and NOT RFC 9728
+# protected resource metadata (owned by Symfony Security).
+oauth_resource_server_client_bootstrap:
+    path: /.well-known/app-auth/v1
+    controller: Quantatheist\OAuthResourceServer\Controller\ClientBootstrapController
+    methods: [GET]
