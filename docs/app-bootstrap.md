@@ -12,7 +12,7 @@ This is an application-specific bootstrap contract, not OIDC Discovery and not R
 
 1. Register the bundle in `config/bundles.php` if Symfony Flex has not done so:
    `Quantatheist\\OAuthResourceServer\\OAuthResourceServerBundle::class => ['all' => true]`
-2. Add the **explicitly approved PUBLIC client configuration**, shown below, to `config/services.yaml`; use existing envs, not another bundle-specific env namespace.
+2. Add the **explicitly approved PUBLIC client configuration**, shown below, to `config/services.yaml`; use existing envs, not another bundle-specific env namespace. By default the bundle aliases `ClientBootstrapProviderInterface` to `DisabledClientBootstrapProvider`, which returns HTTP 503 if the route is imported. Override that alias explicitly when enabling the bootstrap.
 3. Import the route in `config/routes/oauth_resource_server.yaml`:
 
    ```yaml
@@ -101,3 +101,7 @@ security:
 ```
 
 Do not register `/oidc/callback` as a mobile redirect; it is the native Symfony **web** callback. Drenso uses `/login_check` by default for web login. Symfony APIs themselves have no OAuth login redirect.
+
+### Installing without a mobile API
+
+Simply registering the Symfony bundle must not require any bootstrap metadata or token configuration. The built-in disabled provider lets `cache:clear` and `lint:container` complete without an application-specific `ClientBootstrapProviderInterface` service. Do not import the optional route for applications that do not serve a mobile client (such as Registration). If the route is imported accidentally, it fails closed with HTTP 503/no-store until explicitly configured. No secrets are required or exposed.
