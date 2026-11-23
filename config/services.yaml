@@ -1,12 +1,18 @@
 services:
     Quantatheist\OAuthResourceServer\Bootstrap\BootstrapDocumentValidator: ~
 
+    # Safe default: installing the bundle without a mobile client configuration must
+    # never break cache:clear. Host applications can explicitly override this alias.
+    Quantatheist\OAuthResourceServer\Bootstrap\DisabledClientBootstrapProvider: ~
+
+    Quantatheist\OAuthResourceServer\Bootstrap\ClientBootstrapProviderInterface:
+        alias: Quantatheist\OAuthResourceServer\Bootstrap\DisabledClientBootstrapProvider
+
     Quantatheist\OAuthResourceServer\Controller\ClientBootstrapController:
         public: true
         arguments:
             $provider: '@Quantatheist\OAuthResourceServer\Bootstrap\ClientBootstrapProviderInterface'
             $validator: '@Quantatheist\OAuthResourceServer\Bootstrap\BootstrapDocumentValidator'
 
-# The host application MUST alias ClientBootstrapProviderInterface to its own
-# public-client configuration service before importing config/routes.yaml.
-# No bundle route is imported automatically.
+# Bootstrap stays disabled unless the host explicitly overrides the provider
+# interface alias. No bundle route is imported automatically.
