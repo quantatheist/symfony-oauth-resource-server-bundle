@@ -26,3 +26,7 @@ See [Web, API and Flutter client configuration](docs/configuration-and-redirects
 ## Development
 
 `composer install`, then `vendor/bin/phpunit`. Real IdP security acceptance tests are still required.
+
+## Consumer authorization policies
+
+`Security\\ConfiguredConsumerPolicy` evaluates strict issuer/audience/allowlisted client/azp/scope policy **only after** a host validator has verified the token and resolved its client ID. See [consumer policies and integration boundaries](docs/consumer-policies.md). This does not yet replace a host application's existing token handler.
