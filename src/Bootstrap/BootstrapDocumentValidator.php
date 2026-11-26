@@ -61,7 +61,7 @@ final class BootstrapDocumentValidator
     private function requireHttps(mixed $url): void
     {
         if (!is_string($url) || !filter_var($url, FILTER_VALIDATE_URL)
-            || preg_match('/[\x00-\x20\x7f\\]|%2f|%5c|%2e|\/\.{1,2}(?:\/|$)/i', $url)) {
+            || str_contains($url, '\\') || preg_match('/[\x00-\x20\x7f]|%2f|%5c|%2e|\/\.{1,2}(?:\/|$)/i', $url)) {
             throw new \InvalidArgumentException('Invalid public URL.');
         }
         $parts = parse_url($url);
