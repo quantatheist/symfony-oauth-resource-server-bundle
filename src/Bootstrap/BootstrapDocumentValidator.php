@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Quantatheist\OAuthResourceServer\Bootstrap;
 
 /**
- * Fail-closed structural checks for the Nailpolishment-compatible bootstrap v1.
- * This does NOT establish trusted redirect destinations, client registrations or
- * complete JSON Schema validation. Do not expose a public endpoint yet.
+ * Fail-closed public metadata checks for shared Flutter Android/iOS bootstrap v1.
+ * The application must supply a trusted static configuration. This validator
+ * never verifies provider credentials, creates OAuth clients or authorizes API access.
  */
 final class BootstrapDocumentValidator
 {
