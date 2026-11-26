@@ -31,7 +31,7 @@ final class BootstrapDocumentValidator
         foreach ($document['oauth']['clients'] as $id => $client) {
             if (!is_string($id) || '' === trim($id) || !is_array($client)
                 || !is_string($client['client_id'] ?? null)
-                || !preg_match('/^[\\x21-\\x7e]{1,255}$/D', $client['client_id'])
+                || !preg_match('/^[\x21-\x7e]{1,255}$/D', $client['client_id'])
                 || ($client['authorization_code'] ?? null) !== true
                 || ($client['pkce'] ?? null) !== 'S256'
                 || !is_array($client['scopes'] ?? null) || [] === $client['scopes']) {
@@ -46,14 +46,14 @@ final class BootstrapDocumentValidator
                     throw new \InvalidArgumentException('Issuer/discovery origin mismatch.');
                 }
             }
-            if (!in_array('openid', $client['scopes'], true)
-                || count($client['scopes']) !== count(array_unique($client['scopes']))) {
-                throw new \InvalidArgumentException('Invalid OAuth scope set.');
-            }
             foreach ($client['scopes'] as $scope) {
                 if (!is_string($scope) || !preg_match('/^[\x21\x23-\x5b\x5d-\x7e]+$/D', $scope)) {
                     throw new \InvalidArgumentException('Invalid OAuth scope.');
                 }
+            }
+            if (!in_array('openid', $client['scopes'], true)
+                || count($client['scopes']) !== count(array_unique($client['scopes']))) {
+                throw new \InvalidArgumentException('Invalid OAuth scope set.');
             }
         }
     }
@@ -61,7 +61,7 @@ final class BootstrapDocumentValidator
     private function requireHttps(mixed $url): void
     {
         if (!is_string($url) || !filter_var($url, FILTER_VALIDATE_URL)
-            || preg_match('/[\\x00-\\x20\\x7f\\\\]|%2f|%5c|%2e|\\/\\.{1,2}(?:\\/|$)/i', $url)) {
+            || preg_match('/[\x00-\x20\x7f\\]|%2f|%5c|%2e|\/\.{1,2}(?:\/|$)/i', $url)) {
             throw new \InvalidArgumentException('Invalid public URL.');
         }
         $parts = parse_url($url);
