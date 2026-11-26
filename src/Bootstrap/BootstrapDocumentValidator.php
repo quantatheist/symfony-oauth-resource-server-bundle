@@ -22,10 +22,16 @@ final class BootstrapDocumentValidator
             throw new \InvalidArgumentException('Unsupported client bootstrap contract.');
         }
 
-        $this->requireHttps($document['api']['base_url'] ?? null);
+        $api = $document['api']['base_url'] ?? null;
+        $this->requireHttps($api);
+        $apiPath = parse_url($api, PHP_URL_PATH);
+        if (!is_string($apiPath) || !preg_match('~/api/?$~D', $apiPath)) {
+            throw new \InvalidArgumentException('Invalid API base path.');
+        }
         foreach ($document['oauth']['clients'] as $id => $client) {
             if (!is_string($id) || '' === trim($id) || !is_array($client)
-                || !is_string($client['client_id'] ?? null) || '' === trim($client['client_id'])
+                || !is_string($client['client_id'] ?? null)
+                || !preg_match('/^[\\x21-\\x7e]{1,255}$/D', $client['client_id'])
                 || ($client['authorization_code'] ?? null) !== true
                 || ($client['pkce'] ?? null) !== 'S256'
                 || !is_array($client['scopes'] ?? null) || [] === $client['scopes']) {
@@ -34,6 +40,15 @@ final class BootstrapDocumentValidator
             $this->requireHttps($client['issuer'] ?? null);
             if (array_key_exists('discovery_url', $client)) {
                 $this->requireHttps($client['discovery_url']);
+                // Discovery is allowed under a provider-specific path, but
+                // never a different origin or a request-chosen host.
+                if ($this->origin($client['issuer']) !== $this->origin($client['discovery_url'])) {
+                    throw new \InvalidArgumentException('Issuer/discovery origin mismatch.');
+                }
+            }
+            if (!in_array('openid', $client['scopes'], true)
+                || count($client['scopes']) !== count(array_unique($client['scopes']))) {
+                throw new \InvalidArgumentException('Invalid OAuth scope set.');
             }
             foreach ($client['scopes'] as $scope) {
                 if (!is_string($scope) || !preg_match('/^[\x21\x23-\x5b\x5d-\x7e]+$/D', $scope)) {
@@ -45,7 +60,8 @@ final class BootstrapDocumentValidator
 
     private function requireHttps(mixed $url): void
     {
-        if (!is_string($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
+        if (!is_string($url) || !filter_var($url, FILTER_VALIDATE_URL)
+            || preg_match('/[\\x00-\\x20\\x7f\\\\]|%2f|%5c|%2e|\\/\\.{1,2}(?:\\/|$)/i', $url)) {
             throw new \InvalidArgumentException('Invalid public URL.');
         }
         $parts = parse_url($url);
@@ -56,4 +72,11 @@ final class BootstrapDocumentValidator
             throw new \InvalidArgumentException('A public HTTPS URL is required.');
         }
     }
+    private function origin(string $url): string
+    {
+        $parts = parse_url($url);
+        return strtolower((string) $parts['scheme']).'://'.strtolower((string) $parts['host'])
+            .':'.(string) ($parts['port'] ?? 443);
+    }
+
 }
