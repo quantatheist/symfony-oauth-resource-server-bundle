@@ -46,4 +46,40 @@ final class BootstrapDocumentValidatorTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         (new BootstrapDocumentValidator())->validate($document);
     }
+    public function testRejectsForeignDiscoveryOriginAndUnsafeMetadata(): void
+    {
+        foreach ([
+            ['oauth' => ['clients' => ['mobile' => ['discovery_url' => 'https://other.example.test/openid']]]],
+            ['oauth' => ['clients' => ['mobile' => ['client_id' => 'public client with spaces']]]],
+            ['oauth' => ['clients' => ['mobile' => ['scopes' => ['offline_access']]]]],
+            ['oauth' => ['clients' => ['mobile' => ['scopes' => ['openid', 'openid']]]]],
+            ['api' => ['base_url' => 'https://api.example.test/other']],
+            ['api' => ['base_url' => 'https://api.example.test/%2e%2e/api']],
+        ] as $override) {
+            $document = $this->validDocument();
+            foreach ($override as $key => $value) {
+                if ($key === 'oauth') {
+                    $document['oauth']['clients']['mobile'] = array_replace($document['oauth']['clients']['mobile'], $value['clients']['mobile']);
+                } else {
+                    $document[$key] = array_replace($document[$key], $value);
+                }
+            }
+            try {
+                (new BootstrapDocumentValidator())->validate($document);
+                self::fail('Unsafe bootstrap metadata was accepted.');
+            } catch (\InvalidArgumentException) {
+                self::assertTrue(true);
+            }
+        }
+    }
+
+    public function testValidatesProviderSpecificDiscoveryWithSameOrigin(): void
+    {
+        $document = $this->validDocument();
+        $document['oauth']['clients']['mobile']['issuer'] = 'https://auth.example.test/application/o/mobile/';
+        $document['oauth']['clients']['mobile']['discovery_url'] = 'https://auth.example.test/application/o/mobile/.well-known/openid-configuration';
+        (new BootstrapDocumentValidator())->validate($document);
+        self::assertTrue(true);
+    }
+
 }
